@@ -1,8 +1,5 @@
 import * as Location from 'expo-location';
-
-/**
- * Solicita permisos de ubicación
- */
+//Permisos de la unicación 
 export const requestLocationPermission = async () => {
   try {
     const { status } = await Location.requestForegroundPermissionsAsync();
@@ -12,10 +9,6 @@ export const requestLocationPermission = async () => {
     return false;
   }
 };
-
-/**
- * Obtiene la ubicación actual
- */
 export const getCurrentLocation = async () => {
   try {
     const hasPermission = await requestLocationPermission();

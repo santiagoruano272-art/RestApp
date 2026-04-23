@@ -1,15 +1,9 @@
 import React from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  Image,
-  ScrollView,
-} from 'react-native';
+import {View, Text, StyleSheet, Image, ScrollView} from 'react-native';
 
 
 const DetailScreen = ({ route }) => {
-  // 📥 Recibir datos
+  //Recibir datos
   const item = route.params?.item;
 
   // ❌ Si no hay datos (evita crash en monkey testing)

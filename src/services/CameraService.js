@@ -1,9 +1,6 @@
 
 import * as ImagePicker from 'expo-image-picker';
-
-/**
- * Solicita permisos de cámara
- */
+//Permisos de cámara 
 export const requestCameraPermission = async () => {
   try {
     const result = await ImagePicker.requestCameraPermissionsAsync();
@@ -13,10 +10,6 @@ export const requestCameraPermission = async () => {
     return false;
   }
 };
-
-/**
- * Abre la cámara y toma una foto
- */
 export const takePhoto = async () => {
   try {
     const result = await ImagePicker.launchCameraAsync({
@@ -31,10 +24,6 @@ export const takePhoto = async () => {
     return null;
   }
 };
-
-/**
- * Abrir galería (opcional pero recomendado)
- */
 export const pickImageFromGallery = async () => {
   try {
     const result = await ImagePicker.launchImageLibraryAsync({

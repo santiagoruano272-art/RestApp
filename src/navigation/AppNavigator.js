@@ -20,14 +20,13 @@ const AppNavigator = () => {
       <Stack.Navigator>
 
         {user ? (
-          // 🔓 Usuario autenticado
           <>
             <Stack.Screen name="Home" component={HomeScreen} />
             <Stack.Screen name="Create" component={CreatePostScreen} />
             <Stack.Screen name="Detail" component={DetailScreen} />
           </>
         ) : (
-          // 🔐 Usuario NO autenticado
+          //Usuario NO autenticado
           <Stack.Screen name="Login" component={LoginScreen} />
         )}
 

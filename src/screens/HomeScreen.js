@@ -1,11 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import {
-  View,
-  FlatList,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-} from 'react-native';
+import {View, FlatList, StyleSheet, Text, TouchableOpacity} from 'react-native';
 
 import RestaurantCard from '../components/RestaurantCard';
 import Loader from '../components/Loader';
@@ -14,7 +8,7 @@ const HomeScreen = ({ navigation, route }) => {
   const [restaurants, setRestaurants] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // 🔥 ESCUCHAR NUEVO POST
+
   useEffect(() => {
     if (route.params?.newPost) {
       setRestaurants(prev => [
@@ -22,7 +16,6 @@ const HomeScreen = ({ navigation, route }) => {
         ...prev,
       ]);
 
-      // ⚠️ limpiar params para evitar duplicados
       navigation.setParams({ newPost: undefined });
     }
   }, [route.params]);

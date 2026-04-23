@@ -16,7 +16,6 @@ const CreatePostScreen = ({ navigation }) => {
   const [cameraPermission, setCameraPermission] = useState(null);
   const [locationPermission, setLocationPermission] = useState(null);
 
-  // 📸 Tomar foto
   const handlePickImage = async () => {
     if (loading) return;
 
@@ -42,7 +41,6 @@ const CreatePostScreen = ({ navigation }) => {
       if (!result.canceled) {
         setImage(result.assets[0].uri);
 
-        // 📳 Vibración
         await Haptics.impactAsync(
           Haptics.ImpactFeedbackStyle.Medium
         );
@@ -57,7 +55,7 @@ const CreatePostScreen = ({ navigation }) => {
     }
   };
 
-  // 📍 Obtener ubicación
+  // Obtener ubicación
   const handleGetLocation = async () => {
     if (loading) return;
 
@@ -91,7 +89,7 @@ const CreatePostScreen = ({ navigation }) => {
     }
   };
 
-  // ✅ Validaciones
+  //Validaciones
   const validateForm = () => {
     if (!image) {
       Alert.alert('Error', 'Debes tomar una foto');
@@ -111,7 +109,7 @@ const CreatePostScreen = ({ navigation }) => {
     return true;
   };
 
-  // 🚀 Publicar
+  //Publicar
   const handleSubmit = async () => {
     if (loading) return;
 
