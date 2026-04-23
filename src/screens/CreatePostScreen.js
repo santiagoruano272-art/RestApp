@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { View,Text,StyleSheet,Image,Alert,ScrollView,TextInput,TouchableOpacity,
 } from 'react-native';
 
-import * as ImagePicker from 'expo-image-picker';
+import { Camera } from 'expo-camera';
 import * as Location from 'expo-location';
 import * as Haptics from 'expo-haptics';
 
@@ -16,46 +16,40 @@ const CreatePostScreen = ({ navigation }) => {
   const [cameraPermission, setCameraPermission] = useState(null);
   const [locationPermission, setLocationPermission] = useState(null);
 
-  const handlePickImage = async () => {
-    if (loading) return;
+  const [showCamera, setShowCamera] = useState(false);
+
+  const cameraRef = useRef(null);
+
+  const openCamera = async () => {
+    const { status } = await Camera.requestCameraPermissionsAsync();
+
+    if (status !== 'granted') {
+      setCameraPermission(false);
+      Alert.alert('Permiso requerido', 'Necesitamos acceso a la cámara');
+      return;
+    }
+
+    setCameraPermission(true);
+    setShowCamera(true);
+  };
+
+  const takePhoto = async () => {
+    if (!cameraRef.current) return;
 
     try {
-      const permissionResult =
-        await ImagePicker.requestCameraPermissionsAsync();
+      const photo = await cameraRef.current.takePictureAsync();
+      setImage(photo.uri);
+      setShowCamera(false);
 
-      if (!permissionResult.granted) {
-        setCameraPermission(false);
-        Alert.alert(
-          'Permiso requerido',
-          'Necesitamos acceso a la cámara'
-        );
-        return;
-      }
-
-      setCameraPermission(true);
-
-      const result = await ImagePicker.launchCameraAsync({
-        quality: 0.7,
-      });
-
-      if (!result.canceled) {
-        setImage(result.assets[0].uri);
-
-        await Haptics.impactAsync(
-          Haptics.ImpactFeedbackStyle.Medium
-        );
-      }
+      await Haptics.impactAsync(
+        Haptics.ImpactFeedbackStyle.Medium
+      );
     } catch (error) {
       console.log(error);
-      Alert.alert('Error', 'No se pudo abrir la cámara');
-
-      await Haptics.notificationAsync(
-        Haptics.NotificationFeedbackType.Error
-      );
+      Alert.alert('Error', 'No se pudo tomar la foto');
     }
   };
 
-  // Obtener ubicación
   const handleGetLocation = async () => {
     if (loading) return;
 
@@ -65,10 +59,7 @@ const CreatePostScreen = ({ navigation }) => {
 
       if (status !== 'granted') {
         setLocationPermission(false);
-        Alert.alert(
-          'Permiso requerido',
-          'Necesitamos acceso a la ubicación'
-        );
+        Alert.alert('Permiso requerido', 'Necesitamos acceso a la ubicación');
         return;
       }
 
@@ -82,14 +73,9 @@ const CreatePostScreen = ({ navigation }) => {
     } catch (error) {
       console.log(error);
       Alert.alert('Error', 'No se pudo obtener la ubicación');
-
-      await Haptics.notificationAsync(
-        Haptics.NotificationFeedbackType.Error
-      );
     }
   };
 
-  //Validaciones
   const validateForm = () => {
     if (!image) {
       Alert.alert('Error', 'Debes tomar una foto');
@@ -109,10 +95,8 @@ const CreatePostScreen = ({ navigation }) => {
     return true;
   };
 
-  //Publicar
   const handleSubmit = async () => {
     if (loading) return;
-
     if (!validateForm()) return;
 
     try {
@@ -134,7 +118,6 @@ const CreatePostScreen = ({ navigation }) => {
 
       Alert.alert('Éxito', 'Publicado correctamente');
 
-      // Reset
       setImage(null);
       setDescription('');
       setName('');
@@ -144,38 +127,39 @@ const CreatePostScreen = ({ navigation }) => {
     } catch (error) {
       console.log(error);
       Alert.alert('Error', 'No se pudo publicar');
-
-      await Haptics.notificationAsync(
-        Haptics.NotificationFeedbackType.Error
-      );
     } finally {
       setLoading(false);
     }
   };
 
+  if (showCamera) {
+    return (
+      <View style={{ flex: 1 }}>
+        <Camera style={{ flex: 1 }} ref={cameraRef} />
+
+        <TouchableOpacity style={styles.captureButton} onPress={takePhoto}>
+          <Text style={styles.buttonText}>Tomar Foto</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
   return (
     <ScrollView style={styles.container}>
-      {/* Imagen */}
       {image ? (
         <Image source={{ uri: image }} style={styles.image} />
       ) : (
         <Text style={styles.empty}>No has tomado foto</Text>
       )}
 
-      {/* Permisos */}
       {cameraPermission === false && (
-        <Text style={styles.error}>
-          Necesitamos acceso a la cámara
-        </Text>
+        <Text style={styles.error}>Permiso de cámara denegado</Text>
       )}
 
       {locationPermission === false && (
-        <Text style={styles.error}>
-          Necesitamos acceso a la ubicación
-        </Text>
+        <Text style={styles.error}>Permiso de ubicación denegado</Text>
       )}
 
-      {/* Ubicación */}
       {!location && (
         <Text style={styles.warning}>
           ⚠️ Aún no has obtenido la ubicación
@@ -188,11 +172,10 @@ const CreatePostScreen = ({ navigation }) => {
         </Text>
       )}
 
-      {/* Inputs */}
       <TextInput
         value={name}
         onChangeText={setName}
-        placeholder="Nombre del restaurante"
+        placeholder="Nombre del local"
         style={styles.input}
       />
 
@@ -204,28 +187,15 @@ const CreatePostScreen = ({ navigation }) => {
         style={styles.input}
       />
 
-      {/* Botones */}
-      <TouchableOpacity
-        style={styles.button}
-        onPress={handlePickImage}
-        disabled={loading}
-      >
-        <Text style={styles.buttonText}>Tomar foto</Text>
+      <TouchableOpacity style={styles.button} onPress={openCamera}>
+        <Text style={styles.buttonText}>Abrir cámara</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity
-        style={styles.button}
-        onPress={handleGetLocation}
-        disabled={loading}
-      >
+      <TouchableOpacity style={styles.button} onPress={handleGetLocation}>
         <Text style={styles.buttonText}>Obtener ubicación</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity
-        style={styles.button}
-        onPress={handleSubmit}
-        disabled={loading}
-      >
+      <TouchableOpacity style={styles.button} onPress={handleSubmit}>
         <Text style={styles.buttonText}>
           {loading ? 'Publicando...' : 'Publicar'}
         </Text>
@@ -274,6 +244,14 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     alignItems: 'center',
     marginBottom: 10,
+  },
+  captureButton: {
+    position: 'absolute',
+    bottom: 40,
+    alignSelf: 'center',
+    backgroundColor: '#2ecc71',
+    padding: 15,
+    borderRadius: 50,
   },
   buttonText: {
     color: '#fff',
