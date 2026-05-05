@@ -1,8 +1,7 @@
 import React, { useState, useRef } from 'react';
-import { View,Text,StyleSheet,Image,Alert,ScrollView,TextInput,TouchableOpacity,
-} from 'react-native';
+import { View,Text,StyleSheet,Image,Alert,ScrollView,TextInput,TouchableOpacity,} from 'react-native';
 
-import { Camera } from 'expo-camera';
+import { CameraView, useCameraPermissions } from 'expo-camera';
 import * as Location from 'expo-location';
 import * as Haptics from 'expo-haptics';
 
@@ -13,26 +12,26 @@ const CreatePostScreen = ({ navigation }) => {
   const [description, setDescription] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const [cameraPermission, setCameraPermission] = useState(null);
   const [locationPermission, setLocationPermission] = useState(null);
-
   const [showCamera, setShowCamera] = useState(false);
+
+  const [permission, requestPermission] = useCameraPermissions();
 
   const cameraRef = useRef(null);
 
+  // 📸 Abrir cámara
   const openCamera = async () => {
-    const { status } = await Camera.requestCameraPermissionsAsync();
+    const result = await requestPermission();
 
-    if (status !== 'granted') {
-      setCameraPermission(false);
+    if (!result.granted) {
       Alert.alert('Permiso requerido', 'Necesitamos acceso a la cámara');
       return;
     }
 
-    setCameraPermission(true);
     setShowCamera(true);
   };
 
+  // 📸 Tomar foto
   const takePhoto = async () => {
     if (!cameraRef.current) return;
 
@@ -50,6 +49,7 @@ const CreatePostScreen = ({ navigation }) => {
     }
   };
 
+  // 📍 Obtener ubicación
   const handleGetLocation = async () => {
     if (loading) return;
 
@@ -59,7 +59,10 @@ const CreatePostScreen = ({ navigation }) => {
 
       if (status !== 'granted') {
         setLocationPermission(false);
-        Alert.alert('Permiso requerido', 'Necesitamos acceso a la ubicación');
+        Alert.alert(
+          'Permiso requerido',
+          'Necesitamos acceso a la ubicación'
+        );
         return;
       }
 
@@ -76,6 +79,7 @@ const CreatePostScreen = ({ navigation }) => {
     }
   };
 
+  // ✅ Validación
   const validateForm = () => {
     if (!image) {
       Alert.alert('Error', 'Debes tomar una foto');
@@ -95,6 +99,7 @@ const CreatePostScreen = ({ navigation }) => {
     return true;
   };
 
+  // 🚀 Publicar
   const handleSubmit = async () => {
     if (loading) return;
     if (!validateForm()) return;
@@ -132,18 +137,27 @@ const CreatePostScreen = ({ navigation }) => {
     }
   };
 
+  // 📷 Vista de cámara
   if (showCamera) {
     return (
       <View style={{ flex: 1 }}>
-        <Camera style={{ flex: 1 }} ref={cameraRef} />
+        <CameraView
+          style={{ flex: 1 }}
+          ref={cameraRef}
+          facing="back"
+        />
 
-        <TouchableOpacity style={styles.captureButton} onPress={takePhoto}>
+        <TouchableOpacity
+          style={styles.captureButton}
+          onPress={takePhoto}
+        >
           <Text style={styles.buttonText}>Tomar Foto</Text>
         </TouchableOpacity>
       </View>
     );
   }
 
+  // 📱 Vista principal
   return (
     <ScrollView style={styles.container}>
       {image ? (
@@ -152,12 +166,16 @@ const CreatePostScreen = ({ navigation }) => {
         <Text style={styles.empty}>No has tomado foto</Text>
       )}
 
-      {cameraPermission === false && (
-        <Text style={styles.error}>Permiso de cámara denegado</Text>
+      {permission && !permission.granted && (
+        <Text style={styles.error}>
+          Permiso de cámara denegado
+        </Text>
       )}
 
       {locationPermission === false && (
-        <Text style={styles.error}>Permiso de ubicación denegado</Text>
+        <Text style={styles.error}>
+          Permiso de ubicación denegado
+        </Text>
       )}
 
       {!location && (
@@ -187,15 +205,28 @@ const CreatePostScreen = ({ navigation }) => {
         style={styles.input}
       />
 
-      <TouchableOpacity style={styles.button} onPress={openCamera}>
-        <Text style={styles.buttonText}>Abrir cámara</Text>
+      <TouchableOpacity
+        style={styles.button}
+        onPress={openCamera}
+      >
+        <Text style={styles.buttonText}>
+          Abrir cámara
+        </Text>
       </TouchableOpacity>
 
-      <TouchableOpacity style={styles.button} onPress={handleGetLocation}>
-        <Text style={styles.buttonText}>Obtener ubicación</Text>
+      <TouchableOpacity
+        style={styles.button}
+        onPress={handleGetLocation}
+      >
+        <Text style={styles.buttonText}>
+          Obtener ubicación
+        </Text>
       </TouchableOpacity>
 
-      <TouchableOpacity style={styles.button} onPress={handleSubmit}>
+      <TouchableOpacity
+        style={styles.button}
+        onPress={handleSubmit}
+      >
         <Text style={styles.buttonText}>
           {loading ? 'Publicando...' : 'Publicar'}
         </Text>
